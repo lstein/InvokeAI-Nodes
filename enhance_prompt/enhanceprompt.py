@@ -38,7 +38,6 @@ if OLLAMA_AVAILABLE and LANGCHAIN_COMMUNITY_AVAILABLE:
     try:
         llms = ollama.list()
         OLLAMA_MODELS = tuple(sorted(model['name'] for model in llms['models']))
-        print(OLLAMA_MODELS)
         if len(OLLAMA_MODELS) > 0:
             MODELS_AVAILABLE = True
             DEFAULT_MODEL = PREFERRED_MODEL if PREFERRED_MODEL in OLLAMA_MODELS else OLLAMA_MODELS[0]
