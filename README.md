@@ -1,4 +1,5 @@
 # InvokeAI-Nodes
+<<<<<<< HEAD
 Collection of InvokeAI nodes for enhanced image generation.
 
 This repository contains workflow nodes designed to add features to
