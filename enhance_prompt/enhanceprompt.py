@@ -17,7 +17,7 @@ PROMPT_PREFIX = "Rewrite this prompt to be suitable for a text-to-image generato
 OLLAMA_AVAILABLE = False
 LANGCHAIN_COMMUNITY_AVAILABLE = False
 MODELS_AVAILABLE = False
-PREFERRED_MODEL = 'gnokit/improve-prompt'
+PREFERRED_MODEL = 'gnokit/improve-prompt:latest'
 OLLAMA_MODELS = ("None Installed",)
 DEFAULT_MODEL = ""
 
@@ -37,7 +37,8 @@ if OLLAMA_AVAILABLE:
 if OLLAMA_AVAILABLE and LANGCHAIN_COMMUNITY_AVAILABLE:
     try:
         llms = ollama.list()
-        OLLAMA_MODELS = tuple(model['name'] for model in llms['models'])
+        OLLAMA_MODELS = tuple(sorted(model['name'] for model in llms['models']))
+        print(OLLAMA_MODELS)
         if len(OLLAMA_MODELS) > 0:
             MODELS_AVAILABLE = True
             DEFAULT_MODEL = PREFERRED_MODEL if PREFERRED_MODEL in OLLAMA_MODELS else OLLAMA_MODELS[0]
@@ -67,12 +68,14 @@ class EnhancePromptInvocation(BaseInvocation):
     # Inputs
     value: str = InputField(default=FIELD_VALUE, description="Image prompt", ui_component=UIComponent.Textarea)
     model: Literal[OLLAMA_MODELS] = InputField(default=DEFAULT_MODEL, description="The Ollama model to use")
-
+    offload_from_gpu: bool = InputField(default=False, description="Offload LLM after execution")
+    
     def invoke(self, context: InvocationContext) -> EnhancePromptOutput:
         if not MODELS_AVAILABLE:
             return EnhancePromptOutput(prompt="")
 
-        llm = Ollama(model=self.model, temperature=0)
+        kwargs = {'keep_alive': 0} if self.offload_from_gpu else {}
+        llm = Ollama(model=self.model, **kwargs)
         user_input = self.value
         response = llm.invoke(PROMPT_PREFIX + user_input)
         return EnhancePromptOutput(value=response.strip())

@@ -32,7 +32,7 @@ input in a for suitable for a text-to-image-generator." The rewritten
 prompt can then be passed on to a Compel mode for positive or negative
 text conditioning.
 
-Although the node will work with any Ollama-compatible LLM, I strongly
+Although the node will work with any Ollama-compatible LLM, I 
 recommend using
 [gnokit/improve-prompt](https://ollama.com/gnokit/improve-prompt), a
 small (2B parameter) model that was specifically trained for prompt
@@ -40,6 +40,10 @@ enhancement. Using this model will help avoid out of memory errors on
 CUDA systems when Invoke and the Ollama server contend with each other
 for VRAM.
 
+Alternatively, if you find yourself getting OOM errors, you can enable
+the "Offload From GPU" option, which will purge the LLM model from
+VRAM immediately after running it. The only drawback of this it that
+it will cause a small delay before image rendering starts.
 
 ### Installation
 
