@@ -11,44 +11,15 @@ from invokeai.invocation_api import (
     OutputField,
     UIComponent,
 )
+from .common import OllamaSettings
 
-FIELD_VALUE = ""
-PROMPT_PREFIX = "Rewrite this prompt to be suitable for a text-to-image generator. Return the rewritten prompt only:"
-OLLAMA_AVAILABLE = False
-LANGCHAIN_COMMUNITY_AVAILABLE = False
-MODELS_AVAILABLE = False
 PREFERRED_MODEL = 'gnokit/improve-prompt:latest'
-OLLAMA_MODELS = ("None Installed",)
-DEFAULT_MODEL = ""
 
-try:
-    import ollama
-    OLLAMA_AVAILABLE = True
-except ImportError:
-    FIELD_VALUE = "To use this node, please run 'pip install ollama'"
-
-if OLLAMA_AVAILABLE:
-    try:
-        from langchain_community.llms import Ollama
-        LANGCHAIN_COMMUNITY_AVAILABLE = True
-    except ImportError:
-        FIELD_VALUE = "To use this node, please run 'pip install langchain-community'"
-
-if OLLAMA_AVAILABLE and LANGCHAIN_COMMUNITY_AVAILABLE:
-    try:
-        llms = ollama.list()
-        OLLAMA_MODELS = tuple(sorted(model['name'] for model in llms['models']))
-        if len(OLLAMA_MODELS) > 0:
-            MODELS_AVAILABLE = True
-            DEFAULT_MODEL = PREFERRED_MODEL if PREFERRED_MODEL in OLLAMA_MODELS else OLLAMA_MODELS[0]
-        else:
-            OLLAMA_MODELS = ("None Installed",)
-            FIELD_VALUE = f"To use this node, please run 'ollama pull {PREFERRED_MODEL}'"
-    except Exception as e:
-        OLLAMA_MODELS = ("None Installed",)
-        DEFAULT_PROMPT = "OLLAMA_MODELS'"
-        FIELD_VALUE = f"To use this node, please run 'ollama pull {PREFERRED_MODEL}'"
-
+ollama_settings = OllamaSettings(prompt_prefix="Rewrite this prompt to be suitable for a text-to-image generator. Return the rewritten prompt only:")
+error_message = ollama_settings.message
+error_message = error_message or f"To use this node, please run 'ollama pull {PREFERRED_MODEL}'" if not ollama_settings.models else ''
+models = ollama_settings.models or ("None Installed",)
+default_model = PREFERRED_MODEL if PREFERRED_MODEL in models else models[0]
 @invocation_output("EnhancePromptOutput")
 class EnhancePromptOutput(BaseInvocationOutput):
     """Enhanced prompt output"""
@@ -65,16 +36,16 @@ class EnhancePromptInvocation(BaseInvocation):
     """Use the local Ollama model to enhance a prompt"""
 
     # Inputs
-    value: str = InputField(default=FIELD_VALUE, description="Image prompt", ui_component=UIComponent.Textarea)
-    model: Literal[OLLAMA_MODELS] = InputField(default=DEFAULT_MODEL, description="The Ollama model to use")
+    value: str = InputField(default=error_message, description="Image prompt", ui_component=UIComponent.Textarea)
+    model: Literal[models] = InputField(default=default_model, description="The Ollama model to use")
     offload_from_gpu: bool = InputField(default=False, description="Offload LLM after execution")
     
     def invoke(self, context: InvocationContext) -> EnhancePromptOutput:
-        if not MODELS_AVAILABLE:
+        if not ollama_settings.models:
             return EnhancePromptOutput(prompt="")
 
         kwargs = {'keep_alive': 0} if self.offload_from_gpu else {}
-        llm = Ollama(model=self.model, **kwargs)
+        llm = ollama_settings.get_model(model=self.model, **kwargs)
         user_input = self.value
-        response = llm.invoke(PROMPT_PREFIX + user_input)
+        response = llm.invoke(ollama_settings.prompt_prefix + user_input)
         return EnhancePromptOutput(value=response.strip())
