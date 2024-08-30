@@ -63,7 +63,7 @@ the same system you run InvokeAI on.
    ollama pull gnokit/improve-prompt
    ```
    
-4. Copy the directory `enhance_prompt` and its contents into the `nodes`
+4. Download this repo and copy the directory `enhance_prompt` and its contents into the `nodes`
    directory of your InvokeAI root folder. It should look like this:
    ```
    INVOKEAI_ROOT
