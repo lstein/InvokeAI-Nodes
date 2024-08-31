@@ -95,6 +95,15 @@ the output description as an input prompt, or modify it in some way.
 In this screenshot, we've taken the picnicking bears image from the previous [Enhance Prompt](#enhance-prompt-node) example,
 passed it through the Describe Image node, and then used the resulting description as an SDXL image generation prompt:
 
+```
+The image depicts a group of anthropomorphic bears dressed in clothing and accessories that resemble human summer
+attire, gathered on a picnic blanket in a scenic outdoor setting. They are positioned as if sitting around a picnic,
+with a basket of food, including sandwiches and fruit, placed in the center. The bears are various shades of brown
+and have features such as ears, claws, and tails that distinguish them from humans. In the background, there is a
+mountainous landscape under a clear blue sky. The scene conveys a sense of leisure and relaxation,
+typical of a family picnic.
+```
+
 ![image](https://github.com/user-attachments/assets/8daed3dc-d0b2-4d0e-945d-cedd169dabeb)
 
 Only some Ollama models have computer vision abilities. The one I have used is [llava](https://ollama.com/library/llava). 
