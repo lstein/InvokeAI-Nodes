@@ -4,9 +4,11 @@ This repository contains workflow nodes designed to add features to
 the [InvokeAI](https://invoke-ai.github.io/InvokeAI) text to image 
 generator.
 
-Currently this repo contains just one node, but may grow with time.
+Currently this repo contains two nodes:
+- [Enhance Prompt Node](#enhance-prompt-node) -- Use an LLM to make your simple prompts fancy
+- [Describe Image Node](#describe-image-node) -- Use an LLM to describe the contents of an uploaded image
 
-## Enhance Prompt for Ollama
+## Enhance Prompt Node
 
 The EnhancePrompt Invocation uses a local [Ollama](https://ollama.ai)
 large language model server to enhance prompts by adding additional
@@ -69,17 +71,71 @@ the same system you run InvokeAI on.
    INVOKEAI_ROOT
    ├── nodes
        ├── enhance_prompt
-       │   ├── enhanceprompt.py
-       │   └── __init__.py
+           ├── enhanceprompt.py
+           ├── describeimage.py
+           ├── common.py
+           └── __init__.py
 
    ```
 5. Restart InvokeAI to pick up the new node.
 
 You'll now be able to search the workflow editor for an "Enhanced
 Prompt". Select the LLM model you wish to use, type in a simple
-prompt, and hook the node's Value output to the Prompt input of 
+prompt, and hook the node's Enhanced Prompt output to the Prompt input of 
 a Prompt node as shown in the screencap above.
 
-Have fun!
+---
 
-Copyright (c) 2024 Lincoln Stein. See [LICENSE] for usage terms.
+## Describe Image Node
+
+The DescribeImage Invocation uses a local [Ollama](https://ollama.ai)
+large language model server to describe the contents of any image. You can use
+the output description as an input prompt, or modify it in some way.
+
+In this screenshot, we've taken the picnicking bears image from the previous [Enhance Prompt](#enhance-prompt-node) example,
+passed it through the Describe Image node, and then used the resulting description as an SDXL image generation prompt:
+
+![image](https://github.com/user-attachments/assets/8daed3dc-d0b2-4d0e-945d-cedd169dabeb)
+
+Only some Ollama models have computer vision abilities. The one I have used is [llava](https://ollama.com/library/llava). 
+This LLM uses about 8 GB of VRAM, so I recommend to set the "Offload From Gpu" setting to True. This will load the 
+LLM during image processing, and unload it before the next step in the workflow.
+
+### Installation
+
+It is assumed that you already have an Ollama server up and running on
+the same system you run InvokeAI on.
+
+1. Activate the InvokeAI virtual environment ("developer's console")
+   using the `invoke.bat` script, or manually.
+   
+2. Install the `ollama` and `langchain-community` modules:
+   ```
+   pip install ollama langchain-community
+   ```
+
+3. Install the `llava` model:
+   ```
+   ollama pull llava
+   ```
+   
+4. Download this repo and copy the directory `enhance_prompt` and its contents into the `nodes`
+   directory of your InvokeAI root folder. It should look like this:
+   ```
+   INVOKEAI_ROOT
+   ├── nodes
+       ├── enhance_prompt
+           ├── enhanceprompt.py
+           ├── describeimage.py
+           ├── common.py
+           └── __init__.py
+
+   ```
+5. Restart InvokeAI to pick up the new node.
+
+You'll now be able to search the workflow editor for the "Describe an Image" node. 
+Select the LLM model you wish to use, upload an image file,
+and hook the node's Description output to a Prompt node, or whatever you desire.
+
+
+Copyright (c) 2024 Lincoln Stein. See [LICENSE]() for usage terms.
