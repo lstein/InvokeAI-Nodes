@@ -1,1 +1,2 @@
 from .enhanceprompt import EnhancePromptInvocation
+from .describeimage import DescribeImageInvocation
