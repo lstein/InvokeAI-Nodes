@@ -66,6 +66,6 @@ class EnhancePromptInvocation(BaseInvocation):
 
         kwargs = {"keep_alive": 0} if self.offload_from_gpu else {}
         llm = ollama_settings.get_model(model=self.model, **kwargs)
-        user_input = self.value
+        user_input = self.prompt
         response = llm.invoke(ollama_settings.prompt_prefix + user_input)
         return EnhancePromptOutput(enhanced_prompt=response.strip())
