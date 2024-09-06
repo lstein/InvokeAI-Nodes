@@ -47,6 +47,38 @@ the "Offload From GPU" option, which will purge the LLM model from
 VRAM immediately after running it. The only drawback of this it that
 it will cause a small delay before image rendering starts.
 
+### Verbosity
+
+The *Verbosity* menu has four levels:
+
+* <prompt enhancement off>
+* terse
+* medium
+* baroque
+
+As its name implies, **<prompt enhancement off>** will disable prompt 
+rewriting completely and pass through the prompt unchanged.
+
+Using the recommended `gnokit/improve-prompt` model, the remaining
+verbosity settings will have these effects:
+
+**terse** will produce a concise prompt that adheres more strictly to
+the input text. It may add backgrounds and styles if they were not
+specified in the input prompt.
+
+**medium** produces a longer prompt that adds whimsical details,
+atmospheric descriptions, and other qualifiers.
+
+**baroque** produces a long-winded prompt with florid, poetic, often
+grandiose language that is equally likely to confuse or inspire the
+downstream image generation. Be aware that the enhanced prompts
+created with this setting will sometimes exceed the token limit.
+
+Because we are working with a small LLM, this node will add another
+source of variability to your images. You may wish to use a constant
+random seed to the denoising step in order to see variation
+originating from the prompt.
+
 ### Installation
 
 It is assumed that you already have an Ollama server up and running on

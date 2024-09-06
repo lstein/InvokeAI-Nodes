@@ -14,10 +14,38 @@ from invokeai.invocation_api import (
 from .common import OllamaSettings
 
 PREFERRED_MODEL = "gnokit/improve-prompt:latest"
+SYSTEM_MESSAGE = {
+    '<prompt enhancement off>' : None,
+    
+    'terse' : """
+Instructions:
+- Enhance the human's prompt for text-to-image generation.
+- Take the original prompt and add style, atmosphere and context.
+- Return the enhanced prompt only without a label or explanation.
+- Be concise.
+- Do not use more than 20 words.
+""",
 
-ollama_settings = OllamaSettings(
-    prompt_prefix="Rewrite this prompt to be suitable for a text-to-image generator. Return the rewritten prompt only:"
-)
+    'medium' : """
+Instructions:
+- Enhance the human's prompt for text-to-image generation.
+- Take the original prompt and add style, descriptive details, atmosphere and context.
+- Return the enhanced prompt only without a label or explanation.
+- Be moderately verbose.
+- Do not use more than 40 words.
+""",
+
+    'baroque' : """
+Instructions:
+- Enhance the human's prompt for text-to-image generation.
+- Using florid prose, enhance the original prompt and expand upon it, adding more descriptive details, sensory information, and context to create a vivid and compelling image.
+- Return the enhanced prompt only without a label or explanation.
+- Use flowery, verbose language.
+- Do not use more than 100 words.
+"""
+}
+
+ollama_settings = OllamaSettings()
 error_message = ollama_settings.message
 error_message = (
     error_message or f"To use this node, please run 'ollama pull {PREFERRED_MODEL}'"
@@ -26,7 +54,7 @@ error_message = (
 )
 models = ollama_settings.models or ("None Installed",)
 default_model = PREFERRED_MODEL if PREFERRED_MODEL in models else models[0]
-
+verbosity_levels = tuple(SYSTEM_MESSAGE.keys())
 
 @invocation_output("EnhancePromptOutput")
 class EnhancePromptOutput(BaseInvocationOutput):
@@ -54,18 +82,27 @@ class EnhancePromptInvocation(BaseInvocation):
         ui_component=UIComponent.Textarea,
     )
     model: Literal[models] = InputField(
-        default=default_model, description="The Ollama model to use"
+        default=default_model,
+        description="The Ollama model to use"
+    )
+    verbosity: Literal[verbosity_levels] = InputField(
+        default='medium',
+        description="The level of detail in the enhanced prompt",
     )
     offload_from_gpu: bool = InputField(
-        default=False, description="Offload LLM after execution"
+        default=True,
+        description="Offload LLM after execution"
     )
 
     def invoke(self, context: InvocationContext) -> EnhancePromptOutput:
-        if not ollama_settings.models:
-            return EnhancePromptOutput(prompt="")
-
-        kwargs = {"keep_alive": 0} if self.offload_from_gpu else {}
-        llm = ollama_settings.get_model(model=self.model, **kwargs)
         user_input = self.prompt
-        response = llm.invoke(ollama_settings.prompt_prefix + user_input)
+        if not ollama_settings.models:
+            return EnhancePromptOutput(enhanced_prompt=user_input)
+        if not SYSTEM_MESSAGE[self.verbosity]:
+            return EnhancePromptOutput(enhanced_prompt=user_input)
+
+        kwargs: dict[str, str|int] = {"keep_alive": 0} if self.offload_from_gpu else {}
+        kwargs["system"] = SYSTEM_MESSAGE[self.verbosity]
+        llm = ollama_settings.get_model(model=self.model, **kwargs)
+        response = llm.invoke(user_input)
         return EnhancePromptOutput(enhanced_prompt=response.strip())
